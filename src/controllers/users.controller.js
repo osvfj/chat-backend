@@ -11,10 +11,6 @@ const getUser = async (req = request, res = response) => {
   const { id } = req.params;
   const user = await User.findById(id, { password: 0 });
 
-  if (!user) {
-    return res.status(404).json({ msg: 'User not found' });
-  }
-
   res.json(user);
 };
 
@@ -28,9 +24,7 @@ const updateUser = async (req = request, res = response) => {
       username,
       password,
     });
-    if (!user) {
-      return res.status(404).json({ msg: 'The user does not exist' });
-    }
+
     res.json({ msg: 'User updated', user });
   } catch (error) {
     console.log(error);
@@ -40,20 +34,16 @@ const updateUser = async (req = request, res = response) => {
 
 const updateAvatar = async (req = request, res = response) => {
   try {
-    const { userId } = req.params;
+    const { id } = req.params;
     const { tempFilePath } = req.files.avatar;
     const avatarUploaded = await cloudinary.uploader.upload(tempFilePath);
 
-    const user = await User.findByIdAndUpdate(userId, {
+    const user = await User.findByIdAndUpdate(id, {
       avatar: {
         url: avatarUploaded.url,
         public_id: avatarUploaded.public_id,
       },
     });
-
-    if (!user) {
-      return res.status(404).json({ msg: 'User not found' });
-    }
 
     res.json({ msg: 'Avatar updated', user });
   } catch (error) {
@@ -65,10 +55,6 @@ const updateAvatar = async (req = request, res = response) => {
 const deleteUser = async (req = request, res = response) => {
   const { id } = req.params;
   const user = await User.findByIdAndDelete(id, { password: 0 });
-
-  if (!user) {
-    return res.status(404).json({ msg: 'User not found' });
-  }
 
   res.json({ msg: 'User deleted', user });
 };

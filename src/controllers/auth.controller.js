@@ -6,9 +6,7 @@ const login = async (req = request, res = response) => {
   const { username, password } = req.body;
   try {
     const user = await User.findOne({ username });
-    if (!user) {
-      return res.status(404).json({ msg: 'The user does not exist' });
-    }
+
     if (!user.comparePassword(password)) {
       return res.status(401).json({ msg: 'The password is incorrect' });
     }
@@ -25,11 +23,6 @@ const register = async (req = request, res = response) => {
   const { tempFilePath } = req.files.avatar;
 
   try {
-    const user = await User.findOne({ username });
-    if (user) {
-      return res.status(400).json({ msg: 'The user already exists' });
-    }
-
     // Upload image to cloudinary
     const avatarUploaded = await cloudinary.uploader.upload(tempFilePath);
 
@@ -45,7 +38,7 @@ const register = async (req = request, res = response) => {
     });
     await newUser.save();
 
-    res.json({ msg: 'user created' });
+    res.json({ msg: 'user created', user: newUser });
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: 'Server error' });
