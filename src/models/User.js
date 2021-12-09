@@ -23,6 +23,10 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
+    avatar: {
+      url: String,
+      public_id: String,
+    },
   },
   {
     timestamps: true,
@@ -45,6 +49,11 @@ UserSchema.pre('save', function (next) {
 
 UserSchema.methods.comparePassword = function (password) {
   return bcrypt.compareSync(password, this.password);
+};
+
+UserSchema.methods.toJSON = function () {
+  const { password, ...user } = this.toObject();
+  return user;
 };
 
 module.exports = model('User', UserSchema);
