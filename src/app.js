@@ -1,9 +1,11 @@
+const fs = require('fs');
+const cors = require('cors');
 const express = require('express');
 const fileUpload = require('express-fileupload');
-const fs = require('fs');
+const cookieParser = require('cookie-parser');
 
 const { createServer } = require('http');
-const { PORT } = require('./config');
+const { PORT, ORIGIN_URL } = require('./config');
 
 const app = express();
 const server = createServer(app);
@@ -13,6 +15,13 @@ app.set('port', PORT);
 
 //middlewares
 app.use(express.json());
+app.use(cookieParser());
+app.use(
+  cors({
+    origin: ORIGIN_URL,
+    credentials: true,
+  })
+);
 app.use(
   fileUpload({
     tempFileDir: true,

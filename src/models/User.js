@@ -1,4 +1,5 @@
 const { Schema, model } = require('mongoose');
+const mongoosePaginate = require('mongoose-paginate-v2');
 const bcrypt = require('bcryptjs');
 
 const UserSchema = new Schema(
@@ -24,8 +25,15 @@ const UserSchema = new Schema(
       required: true,
     },
     avatar: {
-      url: String,
-      public_id: String,
+      url: {
+        type: String,
+        default:
+          'https://res.cloudinary.com/dy3nyscgi/image/upload/v1639250403/profile-pictures/default_profile_400x400_vnlui7.png',
+      },
+      public_id: {
+        type: String,
+        default: 'profile-pictures/default_profile_400x400_vnlui7',
+      },
     },
   },
   {
@@ -33,6 +41,8 @@ const UserSchema = new Schema(
     versionKey: false,
   }
 );
+
+UserSchema.plugin(mongoosePaginate);
 
 UserSchema.pre('save', function (next) {
   if (!this.isModified('password')) return next();

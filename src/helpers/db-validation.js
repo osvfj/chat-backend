@@ -14,11 +14,21 @@ const usernameDoesNotExist = async (username = '') => {
   }
 };
 
-const userNotFound = async (userId = '') => {
-  const user = await User.findById(userId);
-  if (!user) {
-    throw new Error('User not found');
+const userNotFound = async (id, username) => {
+  if (!username === 0) {
+    const user = await User.findOne({ username });
+    if (!user) {
+      throw new Error('User not found');
+    }
   }
+  if (!id === 0) {
+    const user = await User.findById(id);
+    if (!user) {
+      throw new Error('User not found');
+    }
+  }
+
+  return;
 };
 
 const emailAlreadyExists = async (email = '') => {

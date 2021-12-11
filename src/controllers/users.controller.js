@@ -3,49 +3,70 @@ const User = require('../models/User');
 const { cloudinary } = require('../helpers');
 
 const getUsers = async (req = request, res = response) => {
-  const users = await User.find({}, { password: 0 });
+  const page = req.query.page || 1;
+  const limit = req.query.limit || 10;
+
+  const users = await User.paginate({}, { page, limit });
   res.json(users);
 };
 
 const getUser = async (req = request, res = response) => {
-  const { id } = req.params;
-  const user = await User.findById(id, { password: 0 });
+  const { username } = req.params;
+
+  const user = await User.findOne({ username });
+
+  if (!user) {
+    return res.status(404).json({ msg: 'User not found' });
+  }
 
   res.json(user);
 };
 
 const updateUser = async (req = request, res = response) => {
-  const { id } = req.params;
+  const id = req.userId;
   const { name, email, username, password } = req.body;
+
   try {
-    const user = await User.findByIdAndUpdate(id, {
-      name,
-      email,
-      username,
-      password,
-    });
-
-    res.json({ msg: 'User updated', user });
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ msg: 'Server error' });
-  }
-};
-
-const updateAvatar = async (req = request, res = response) => {
-  try {
-    const { id } = req.params;
-    const { tempFilePath } = req.files.avatar;
-    const avatarUploaded = await cloudinary.uploader.upload(tempFilePath);
-
-    const user = await User.findByIdAndUpdate(id, {
-      avatar: {
-        url: avatarUploaded.url,
-        public_id: avatarUploaded.public_id,
+    const user = await User.findByIdAndUpdate(
+      id,
+      {
+        name,
+        email,
+        username,
+        password,
       },
-    });
+      { new: true }
+    );
 
-    res.json({ msg: 'Avatar updated', user });
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    let userImageUpdated;
+    if (req.files) {
+      const { tempFilePath } = req.files.avatar;
+      const [_, avatarUploaded] = await Promise.all([
+        await cloudinary.uploader.destroy(user.avatar.public_id),
+        await cloudinary.uploader.upload(tempFilePath, {
+          upload_preset: 'profile-pictures',
+        }),
+      ]);
+
+      userImageUpdated = await User.findByIdAndUpdate(
+        id,
+        {
+          avatar: {
+            url: avatarUploaded.url,
+            public_id: avatarUploaded.public_id,
+          },
+        },
+        { new: true }
+      );
+    }
+
+    userImageUpdated == true
+      ? res.json({ msg: 'User updated', user })
+      : res.json({ msg: 'User and image updated', userImageUpdated });
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: 'Server error' });
@@ -53,8 +74,13 @@ const updateAvatar = async (req = request, res = response) => {
 };
 
 const deleteUser = async (req = request, res = response) => {
-  const { id } = req.params;
-  const user = await User.findByIdAndDelete(id, { password: 0 });
+  const userId = req.userId;
+
+  const user = await User.findByIdAndDelete(userId);
+
+  if (!user) {
+    return res.status(404).json({ msg: 'User not found' });
+  }
 
   res.json({ msg: 'User deleted', user });
 };
@@ -63,6 +89,5 @@ module.exports = {
   getUsers,
   getUser,
   updateUser,
-  updateAvatar,
   deleteUser,
 };

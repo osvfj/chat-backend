@@ -5,6 +5,7 @@ const {
   emailAlreadyExists,
   userNotFound,
 } = require('./db-validation');
+const { createTokens, verifyToken } = require('./tokens');
 
 module.exports = {
   cloudinary,
@@ -12,4 +13,6 @@ module.exports = {
   usernameAlreadyExists,
   emailAlreadyExists,
   userNotFound,
+  createTokens,
+  verifyToken,
 };
