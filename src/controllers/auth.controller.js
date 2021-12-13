@@ -88,7 +88,8 @@ const logout = (req = request, res = response) => {
 
 const newToken = async (req = request, res = response) => {
   try {
-    const refresh = req.cookies['__Secure-rft'] || req.body.refreshToken;
+    const refresh =
+      req.cookies[COOKIE_REFRESH_NAME] || req.headers[COOKIE_REFRESH_NAME];
     const { id } = await verifyToken(refresh, JWT_REFRESH_TOKEN);
     const { accessToken, refreshToken } = await createTokens(id);
 
