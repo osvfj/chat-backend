@@ -1,13 +1,15 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
+const { csrf } = require('../middlewares');
 const {
   login,
   register,
   logout,
   newToken,
+  getCsrfToken,
 } = require('../controllers/auth.controller');
 const { usernameDoesNotExist } = require('../helpers');
-const { fields, notFound, authorization } = require('../middlewares');
+const { fields, authorization } = require('../middlewares');
 const { userSchemaValidator } = require('../middlewares/validations');
 
 const router = Router();
@@ -23,9 +25,6 @@ router.post('/login', [loginValidations, fields], login);
 router.post('/register', [userSchemaValidator, fields], register);
 router.get('/logout', [authorization], logout);
 router.post('/refresh', [authorization], newToken);
-
-router.get('/test', [authorization], (req, res) => {
-  res.send(req.user);
-});
+router.get('/csrf', [authorization], getCsrfToken);
 
 module.exports = router;

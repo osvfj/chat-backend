@@ -18,6 +18,6 @@ module.exports = {
   ORIGIN_URL: process.env.ORIGIN_URL,
   COOKIE_ACCESS_NAME: cookieAccessName,
   COOKIE_REFRESH_NAME: cookieRefreshName,
+  REDIS_URI: process.env.REDIS_URI,
+  REDIS_PASSWORD: process.env.REDIS_PASSWORD,
 };
-
-//crea pload de foto

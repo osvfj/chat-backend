@@ -1,6 +1,7 @@
 const { request, response } = require('express');
 const User = require('../models/User');
 const { cloudinary } = require('../helpers');
+const { logout } = require('./auth.controller');
 
 const getUsers = async (req = request, res = response) => {
   const page = req.query.page || 1;
@@ -65,8 +66,8 @@ const updateUser = async (req = request, res = response) => {
     }
 
     userImageUpdated == true
-      ? res.json({ msg: 'User updated', user })
-      : res.json({ msg: 'User and image updated', userImageUpdated });
+      ? res.json({ msg: 'User and image updated', userImageUpdated })
+      : res.json({ msg: 'User updated', user });
   } catch (error) {
     console.log(error);
     res.status(500).json({ msg: 'Server error' });
@@ -82,7 +83,10 @@ const deleteUser = async (req = request, res = response) => {
     return res.status(404).json({ msg: 'User not found' });
   }
 
-  res.json({ msg: 'User deleted', user });
+  logout(req, res, {
+    msg: 'User deleted',
+    user,
+  });
 };
 
 module.exports = {

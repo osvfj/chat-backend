@@ -1,7 +1,8 @@
 const { request, response } = require('express');
 const { cloudinary } = require('../helpers');
 const User = require('../models/User');
-const { createTokens, verifyToken } = require('../helpers');
+const { createTokens, verifyToken, csrfToken } = require('../helpers');
+
 const {
   JWT_REFRESH_TOKEN,
   COOKIE_ACCESS_NAME,
@@ -78,12 +79,12 @@ const register = async (req = request, res = response) => {
   }
 };
 
-const logout = (req = request, res = response) => {
-  return res
+const logout = (req = request, res = response, cb) => {
+  res
     .clearCookie(COOKIE_ACCESS_NAME)
     .clearCookie(COOKIE_REFRESH_NAME)
     .status(200)
-    .json({ message: 'Successfully logged out' });
+    .json({ msg: 'Successfully logged out', cb });
 };
 
 const newToken = async (req = request, res = response) => {
@@ -99,11 +100,22 @@ const newToken = async (req = request, res = response) => {
     };
 
     return res
-      .cookie('accessToken', accessToken, cookieOptions)
-      .cookie('refreshToken', refreshToken, cookieOptions)
+      .cookie(COOKIE_ACCESS_NAME, accessToken, cookieOptions)
+      .cookie(COOKIE_REFRESH_NAME, refreshToken, cookieOptions)
       .json({ accessToken, refreshToken });
   } catch (error) {
     res.status(error.status).json({ msg: error.message });
+  }
+};
+
+const getCsrfToken = async (req = request, res = response) => {
+  try {
+    const token = csrfToken(req.userId);
+
+    return res.json({ csrfToken: token });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ msg: 'Server error' });
   }
 };
 
@@ -112,4 +124,5 @@ module.exports = {
   register,
   logout,
   newToken,
+  getCsrfToken,
 };

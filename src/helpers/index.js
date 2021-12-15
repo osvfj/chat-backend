@@ -6,6 +6,8 @@ const {
   userNotFound,
 } = require('./db-validation');
 const { createTokens, verifyToken } = require('./tokens');
+const client = require('./redis');
+const { csrfToken, csrfTokens } = require('./csrftoken');
 
 module.exports = {
   cloudinary,
@@ -15,4 +17,7 @@ module.exports = {
   userNotFound,
   createTokens,
   verifyToken,
+  client,
+  csrfTokens,
+  csrfToken,
 };
