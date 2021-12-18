@@ -7,13 +7,8 @@ const {
   JWT_REFRESH_TOKEN,
   COOKIE_ACCESS_NAME,
   COOKIE_REFRESH_NAME,
+  COOKIES_OPTIONS,
 } = require('../config');
-
-const cookieOptions = {
-  sameSite: 'strict',
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-};
 
 const login = async (req = request, res = response) => {
   const { username, password } = req.body;
@@ -30,8 +25,8 @@ const login = async (req = request, res = response) => {
 
     /*if the user and password are valid, the server will response with an access and refresh token */
     return res
-      .cookie(COOKIE_ACCESS_NAME, accessToken, cookieOptions)
-      .cookie(COOKIE_REFRESH_NAME, refreshToken, cookieOptions)
+      .cookie(COOKIE_ACCESS_NAME, accessToken, COOKIES_OPTIONS)
+      .cookie(COOKIE_REFRESH_NAME, refreshToken, COOKIES_OPTIONS)
       .json({
         msg: 'user logged in',
         user,
@@ -73,8 +68,8 @@ const register = async (req = request, res = response) => {
     const { accessToken, refreshToken } = await createTokens(newUser._id);
 
     res
-      .cookie(COOKIE_ACCESS_NAME, accessToken, cookieOptions)
-      .cookie(COOKIE_REFRESH_NAME, refreshToken, cookieOptions)
+      .cookie(COOKIE_ACCESS_NAME, accessToken, COOKIES_OPTIONS)
+      .cookie(COOKIE_REFRESH_NAME, refreshToken, COOKIES_OPTIONS)
       .json({ msg: 'user created', user: newUser });
   } catch (error) {
     console.log(error);
@@ -102,14 +97,9 @@ const newToken = async (req = request, res = response) => {
     //create a new access token and refresh token
     const { accessToken, refreshToken } = await createTokens(id);
 
-    const cookieOptions = {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-    };
-
     return res
-      .cookie(COOKIE_ACCESS_NAME, accessToken, cookieOptions)
-      .cookie(COOKIE_REFRESH_NAME, refreshToken, cookieOptions)
+      .cookie(COOKIE_ACCESS_NAME, accessToken, COOKIES_OPTIONS)
+      .cookie(COOKIE_REFRESH_NAME, refreshToken, COOKIES_OPTIONS)
       .json({ accessToken, refreshToken });
   } catch (error) {
     res.status(error.status).json({ msg: error.message });

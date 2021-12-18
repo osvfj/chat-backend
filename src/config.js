@@ -5,6 +5,12 @@ const cookieAccessName =
 const cookieRefreshName =
   process.env.NODE_ENV === 'production' ? '__Secure-rft' : 'rft';
 
+const cookiesOptions = {
+  sameSite: 'strict',
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+};
+
 module.exports = {
   PORT: process.env.PORT,
   MONGODB_URI: process.env.MONGODB_URI,
@@ -20,4 +26,5 @@ module.exports = {
   COOKIE_REFRESH_NAME: cookieRefreshName,
   REDIS_URI: process.env.REDIS_URI,
   REDIS_PASSWORD: process.env.REDIS_PASSWORD,
+  COOKIES_OPTIONS: cookiesOptions,
 };
