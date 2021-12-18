@@ -21,12 +21,14 @@ const login = async (req = request, res = response) => {
   try {
     const user = await User.findOne({ username });
 
+    //if the password is not the same as the one in the database return a message
     if (!user.comparePassword(password)) {
       return res.status(401).json({ msg: 'The password is incorrect' });
     }
 
     const { accessToken, refreshToken } = await createTokens(user._id);
 
+    /*if the user and password are valid, the server will response with an access and refresh token */
     return res
       .cookie(COOKIE_ACCESS_NAME, accessToken, cookieOptions)
       .cookie(COOKIE_REFRESH_NAME, refreshToken, cookieOptions)
@@ -53,6 +55,7 @@ const register = async (req = request, res = response) => {
       password,
     });
 
+    /* verify if the user is sending an avatar, if it does will uploaded to cloudinary and save in the database*/
     if (req.files) {
       const { tempFilePath } = req.files.avatar;
       const avatarUploaded = await cloudinary.uploader.upload(tempFilePath, {
@@ -80,6 +83,8 @@ const register = async (req = request, res = response) => {
 };
 
 const logout = (req = request, res = response, cb) => {
+  //the cb is extra parameter where you can send a custom response object, beacuse this function you can used anywhere to logout the user in the app.
+
   res
     .clearCookie(COOKIE_ACCESS_NAME)
     .clearCookie(COOKIE_REFRESH_NAME)
@@ -89,9 +94,12 @@ const logout = (req = request, res = response, cb) => {
 
 const newToken = async (req = request, res = response) => {
   try {
+    //recive the refresh token from the client
     const refresh =
       req.cookies[COOKIE_REFRESH_NAME] || req.headers[COOKIE_REFRESH_NAME];
+    //verify if the refresh token is valid
     const { id } = await verifyToken(refresh, JWT_REFRESH_TOKEN);
+    //create a new access token and refresh token
     const { accessToken, refreshToken } = await createTokens(id);
 
     const cookieOptions = {

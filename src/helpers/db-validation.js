@@ -1,5 +1,7 @@
 const User = require('../models/User');
 
+//all of these validations are used in the custom method on all the schemas for validaton with express-validator
+
 const usernameAlreadyExists = async (username = '') => {
   const user = await User.findOne({ username });
   if (user) {

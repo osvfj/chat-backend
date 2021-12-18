@@ -43,9 +43,14 @@ const updateUser = async (req = request, res = response) => {
       return res.status(404).json({ msg: 'User not found' });
     }
 
+    // this variable has the status if the user send an avatar
     let userImageUpdated;
+
+    //verify if the user is trying to update the avatar, if it does will uploaded to cloudinary and save in the database
     if (req.files) {
-      const { tempFilePath } = req.files.avatar;
+      const { tempFilePath } = req.files.avatar; // get the temporal path of the image
+
+      //delete the old avatar and upload the new one
       const [_, avatarUploaded] = await Promise.all([
         await cloudinary.uploader.destroy(user.avatar.public_id),
         await cloudinary.uploader.upload(tempFilePath, {
@@ -53,6 +58,7 @@ const updateUser = async (req = request, res = response) => {
         }),
       ]);
 
+      //update the avatar of the user in the database
       userImageUpdated = await User.findByIdAndUpdate(
         id,
         {
@@ -65,6 +71,7 @@ const updateUser = async (req = request, res = response) => {
       );
     }
 
+    //if the user updated a image or not, the server will response with the user updated, but with diferent messages
     userImageUpdated == true
       ? res.json({ msg: 'User and image updated', userImageUpdated })
       : res.json({ msg: 'User updated', user });
@@ -83,6 +90,7 @@ const deleteUser = async (req = request, res = response) => {
     return res.status(404).json({ msg: 'User not found' });
   }
 
+  //use the logout function to delete the cookies
   logout(req, res, {
     msg: 'User deleted',
     user,

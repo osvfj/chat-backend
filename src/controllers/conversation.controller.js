@@ -7,6 +7,7 @@ const newConversation = async (req = request, res = response) => {
   const senderId = req.userId;
 
   try {
+    // Find a conversation between the sender and the reciver
     const conversations = await Conversation.find({
       members: {
         $all: [senderId, reciverId],
@@ -15,7 +16,7 @@ const newConversation = async (req = request, res = response) => {
 
     if (reciverId === senderId) {
       return res.status(500).json({
-        message: 'You can not send message to yourself',
+        message: 'You cannot send a message to yourself',
       });
     }
 
@@ -25,18 +26,22 @@ const newConversation = async (req = request, res = response) => {
       });
     }
 
+    // find the reciver in the database
     const reciverExist = await User.findOne({ _id: reciverId });
 
+    // if the reciver does not exist return a message
     if (!reciverExist) {
       return res.status(404).json({
         message: 'User not found',
       });
     }
 
+    // Create a new conversation between the sender and the reciver
     const conversation = new Conversation({
       members: [senderId, reciverId],
     });
 
+    // save the conversation and return the conversation
     await conversation.save();
     res.status(201).json({
       message: 'Conversation created',
@@ -54,6 +59,7 @@ const getConversations = async (req = request, res = response) => {
   const userId = req.userId;
 
   try {
+    // Find all conversations where the user is a member
     const conversations = await Conversation.find({
       members: {
         $in: [userId],
