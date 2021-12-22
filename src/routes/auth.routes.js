@@ -27,4 +27,8 @@ router.get('/logout', [authorization], logout);
 router.post('/refresh', [authorization], newToken);
 router.get('/csrf', [authorization], getCsrfToken);
 
+router.get('/check', [authorization], (req, res) => {
+  res.status(200).json({ msg: 'user is logged in' });
+});
+
 module.exports = router;
