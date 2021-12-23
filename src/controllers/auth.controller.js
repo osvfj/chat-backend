@@ -1,8 +1,9 @@
 const { request, response } = require('express');
 const { cloudinary } = require('../helpers');
-const User = require('../models/User');
 const { createTokens, verifyToken, csrfToken } = require('../helpers');
+const { client } = require('../helpers');
 
+const User = require('../models/User');
 const {
   JWT_REFRESH_TOKEN,
   COOKIE_ACCESS_NAME,
@@ -34,8 +35,7 @@ const login = async (req = request, res = response) => {
         refreshToken,
       });
   } catch (error) {
-    console.log(error);
-    res.status(500).json({ msg: 'Server error' });
+    res.status(500).json({ msg: error.message });
   }
 };
 
@@ -70,9 +70,8 @@ const register = async (req = request, res = response) => {
     res
       .cookie(COOKIE_ACCESS_NAME, accessToken, COOKIES_OPTIONS)
       .cookie(COOKIE_REFRESH_NAME, refreshToken, COOKIES_OPTIONS)
-      .json({ msg: 'user created', user: newUser });
+      .json({ msg: 'user created', user: newUser, aceessToken, refreshToken });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: 'Server error' });
   }
 };
@@ -80,20 +79,28 @@ const register = async (req = request, res = response) => {
 const logout = (req = request, res = response, cb) => {
   //the cb is extra parameter where you can send a custom response object, beacuse this function you can used anywhere to logout the user in the app.
 
-  res
-    .clearCookie(COOKIE_ACCESS_NAME)
-    .clearCookie(COOKIE_REFRESH_NAME)
-    .status(200)
-    .json({ msg: 'Successfully logged out', cb });
+  try {
+    client.del(`access:${req.userId.toString()}`);
+    client.del(`refresh:${req.userId.toString()}`);
+
+    res
+      .clearCookie(COOKIE_ACCESS_NAME)
+      .clearCookie(COOKIE_REFRESH_NAME)
+      .status(200)
+      .json({ msg: 'Successfully logged out', cb });
+  } catch (error) {
+    res.status(500).json({ msg: 'Server error' });
+  }
 };
 
 const newToken = async (req = request, res = response) => {
   try {
     //recive the refresh token from the client
     const refresh =
-      req.cookies[COOKIE_REFRESH_NAME] || req.headers[COOKIE_REFRESH_NAME];
+      req.cookies[COOKIE_REFRESH_NAME] || req.headers['x-refresh-token'];
     //verify if the refresh token is valid
     const { id } = await verifyToken(refresh, JWT_REFRESH_TOKEN);
+
     //create a new access token and refresh token
     const { accessToken, refreshToken } = await createTokens(id);
 
@@ -112,7 +119,6 @@ const getCsrfToken = async (req = request, res = response) => {
 
     return res.json({ csrfToken: token });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: 'Server error' });
   }
 };

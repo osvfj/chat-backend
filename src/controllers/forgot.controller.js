@@ -5,7 +5,7 @@ const {
   COOKIE_REFRESH_NAME,
   COOKIES_OPTIONS,
 } = require('../config');
-const { createTokens } = require('../helpers');
+const { createTokens, client } = require('../helpers');
 
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
@@ -27,9 +27,9 @@ const forgotPassword = async (req, res) => {
 
     const token = uuid();
 
-    user.resetToken = token;
-
-    await user.save();
+    client.set(`reset:${token}`, user._id.toString(), {
+      EX: 1000 * 60 * 60,
+    });
 
     //this should be sended to the user's email, but for now it's just returned
     res.status(200).json({
@@ -53,7 +53,8 @@ const resetPassword = async (req, res) => {
   }
 
   try {
-    const user = await User.findOne({ resetToken });
+    const userId = await client.get(`reset:${resetToken}`);
+    const user = await User.findById(userId);
 
     if (!user) {
       return res.status(400).json({
@@ -62,7 +63,7 @@ const resetPassword = async (req, res) => {
     }
 
     user.password = password;
-    user.resetToken = undefined;
+    client.del(`reset:${resetToken}`);
 
     await user.save();
 

@@ -35,7 +35,6 @@ const UserSchema = new Schema(
         default: 'profile-pictures/default_profile_400x400_vnlui7',
       },
     },
-    resetToken: String,
   },
   {
     timestamps: true,
@@ -63,7 +62,7 @@ UserSchema.methods.comparePassword = function (password) {
 };
 
 UserSchema.methods.toJSON = function () {
-  const { password, resetToken, ...user } = this.toObject();
+  const { password, ...user } = this.toObject();
   return user;
 };
 
