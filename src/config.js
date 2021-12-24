@@ -35,4 +35,10 @@ module.exports = {
   COOKIE_ACCESS_NAME: cookieAccessName,
   COOKIE_REFRESH_NAME: cookieRefreshName,
   COOKIES_OPTIONS: cookiesOptions,
+
+  // Email
+  EMAIL_USER: process.env.EMAIL_USER,
+  EMAIL_PASS: process.env.EMAIL_PASS,
+  EMAIL_HOST: process.env.EMAIL_HOST,
+  EMAIL_PORT: process.env.EMAIL_PORT,
 };

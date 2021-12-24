@@ -8,6 +8,7 @@ const {
 const { createTokens, verifyToken } = require('./tokens');
 const client = require('./redis');
 const csrfToken = require('./csrftoken');
+const { sendEmail, getTemplate } = require('./mailer');
 
 module.exports = {
   cloudinary,
@@ -19,4 +20,6 @@ module.exports = {
   verifyToken,
   client,
   csrfToken,
+  sendEmail,
+  getTemplate,
 };

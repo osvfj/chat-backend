@@ -7,6 +7,8 @@ const {
   logout,
   newToken,
   getCsrfToken,
+  verifyUser,
+  sendVerify,
 } = require('../controllers/auth.controller');
 const { usernameDoesNotExist } = require('../helpers');
 const { fields, authorization } = require('../middlewares');
@@ -26,6 +28,8 @@ router.post('/register', [userSchemaValidator, fields], register);
 router.get('/logout', [authorization], logout);
 router.post('/refresh', [authorization], newToken);
 router.get('/csrf', [authorization], getCsrfToken);
+router.get('/verify/:token', verifyUser);
+router.post('/verify', sendVerify);
 
 router.get('/check', [authorization], (req, res) => {
   res.status(200).json({ msg: 'user is logged in' });

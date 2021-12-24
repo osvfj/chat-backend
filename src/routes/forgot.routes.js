@@ -6,6 +6,6 @@ const {
 const router = Router();
 
 router.post('/password', forgotPassword);
-router.post('/password/reset/', resetPassword);
+router.post('/password/reset/:resetToken', resetPassword);
 
 module.exports = router;

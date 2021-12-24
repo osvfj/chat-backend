@@ -1,7 +1,14 @@
 const { request, response } = require('express');
 const { cloudinary } = require('../helpers');
-const { createTokens, verifyToken, csrfToken } = require('../helpers');
+const {
+  createTokens,
+  verifyToken,
+  csrfToken,
+  sendEmail,
+  getTemplate,
+} = require('../helpers');
 const { client } = require('../helpers');
+const { v4: uuid } = require('uuid');
 
 const User = require('../models/User');
 const {
@@ -9,6 +16,7 @@ const {
   COOKIE_ACCESS_NAME,
   COOKIE_REFRESH_NAME,
   COOKIES_OPTIONS,
+  ORIGIN_URL,
 } = require('../config');
 
 const login = async (req = request, res = response) => {
@@ -20,6 +28,10 @@ const login = async (req = request, res = response) => {
     //if the password is not the same as the one in the database return a message
     if (!user.comparePassword(password)) {
       return res.status(401).json({ msg: 'The password is incorrect' });
+    }
+
+    if (user.isVerified === false) {
+      return res.status(401).json({ msg: 'The user is not verified' });
     }
 
     const { accessToken, refreshToken } = await createTokens(user._id);
@@ -65,13 +77,23 @@ const register = async (req = request, res = response) => {
 
     await newUser.save();
 
-    const { accessToken, refreshToken } = await createTokens(newUser._id);
+    const token = uuid();
+    client.set(`verify:${token}`, newUser._id.toString(), {
+      EX: 60 * 60 * 24 * 1000,
+    });
 
-    res
-      .cookie(COOKIE_ACCESS_NAME, accessToken, COOKIES_OPTIONS)
-      .cookie(COOKIE_REFRESH_NAME, refreshToken, COOKIES_OPTIONS)
-      .json({ msg: 'user created', user: newUser, aceessToken, refreshToken });
+    const template = getTemplate('verify', {
+      url: `${ORIGIN_URL}/auth/verify/${token}`,
+    });
+
+    await sendEmail(newUser.email, 'Verify your email', template);
+
+    res.json({
+      msg: 'user created, verify your account',
+      user: newUser,
+    });
   } catch (error) {
+    console.log(error);
     res.status(500).json({ msg: 'Server error' });
   }
 };
@@ -123,10 +145,67 @@ const getCsrfToken = async (req = request, res = response) => {
   }
 };
 
+const verifyUser = async (req = request, res = response) => {
+  try {
+    const { token } = req.params;
+
+    const userId = await client.get(`verify:${token}`);
+
+    const user = await User.findById(userId);
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    user.isVerified = true;
+
+    await user.save();
+
+    res.json({ msg: 'User verified' });
+  } catch (error) {
+    res.status(500).json({ msg: 'Server error' });
+  }
+};
+
+const sendVerify = async (req = request, res = response) => {
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ msg: 'User already verified' });
+    }
+
+    const token = uuid();
+    client.set(`verify:${token}`, user._id.toString(), {
+      EX: 60 * 60 * 24 * 1000,
+    });
+
+    const template = getTemplate('verify', {
+      url: `${ORIGIN_URL}/auth/verify/${token}`,
+    });
+
+    await sendEmail(user.email, 'Verify your email', template);
+
+    res.json({ msg: 'Verification email sent' });
+  } catch (error) {
+    return res.status(500).json({
+      msg: 'Something goes wrong',
+    });
+  }
+};
+
 module.exports = {
   login,
   register,
   logout,
   newToken,
   getCsrfToken,
+  verifyUser,
+  sendVerify,
 };

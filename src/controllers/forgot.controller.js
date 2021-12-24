@@ -4,8 +4,9 @@ const {
   COOKIE_ACCESS_NAME,
   COOKIE_REFRESH_NAME,
   COOKIES_OPTIONS,
+  ORIGIN_URL,
 } = require('../config');
-const { createTokens, client } = require('../helpers');
+const { createTokens, client, sendEmail, getTemplate } = require('../helpers');
 
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
@@ -31,12 +32,16 @@ const forgotPassword = async (req, res) => {
       EX: 1000 * 60 * 60,
     });
 
-    //this should be sended to the user's email, but for now it's just returned
+    const template = getTemplate('reset', {
+      url: `https://${ORIGIN_URL}/forgot-password/${token}`,
+    });
+    await sendEmail(user.email, 'Reset your password', template);
+
     res.status(200).json({
       msg: 'Reset password link sent',
-      token,
     });
   } catch (error) {
+    console.log(error);
     return res.status(500).json({
       msg: 'Something went wrong',
     });
@@ -44,7 +49,8 @@ const forgotPassword = async (req, res) => {
 };
 
 const resetPassword = async (req, res) => {
-  const { password, resetToken } = req.body;
+  const { password } = req.body;
+  const { resetToken } = req.params;
 
   if (!resetToken || !password) {
     return res.status(400).json({

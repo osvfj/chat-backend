@@ -35,6 +35,10 @@ const UserSchema = new Schema(
         default: 'profile-pictures/default_profile_400x400_vnlui7',
       },
     },
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
