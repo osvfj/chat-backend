@@ -48,7 +48,6 @@ const newConversation = async (req = request, res = response) => {
       conversation,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: 'Error creating conversation',
     });
@@ -60,15 +59,21 @@ const getConversations = async (req = request, res = response) => {
 
   try {
     // Find all conversations where the user is a member
-    const conversations = await Conversation.find({
-      members: {
-        $in: [userId],
+    const conversations = await Conversation.paginate(
+      {
+        members: {
+          $in: [userId],
+        },
       },
-    });
+      {
+        page: req.query.page || 1,
+        limit: req.query.limit || 3,
+      }
+    );
     res.status(200).json(conversations);
   } catch (error) {
     res.status(500).json({
-      message: 'Error retrieving conversations',
+      msg: 'Error retrieving conversations',
       error,
     });
   }

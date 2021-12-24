@@ -23,7 +23,6 @@ const newMessage = async (req = request, res = response) => {
     await newMessage.save();
     res.json(newMessage);
   } catch (error) {
-    console.log(error);
     res.status(500).json({
       message: 'Error al crear el mensaje',
     });
@@ -39,19 +38,26 @@ const getMessages = async (req = request, res = response) => {
 
     if (!conversation) {
       return res.status(404).json({
-        message: 'This conversation does not exist',
+        msg: 'This conversation does not exist',
       });
     }
 
     if (!conversation.members.includes(userId)) {
       return res.status(401).json({
-        message: 'You are not part of this conversation',
+        msg: 'You are not part of this conversation',
       });
     }
 
-    const messages = await Message.find({ conversationId });
-    res.json({ messages });
+    const messages = await Message.paginate(
+      { conversationId },
+      {
+        page: req.query.page || 1,
+        limit: req.query.limit || 30,
+      }
+    );
+    res.json(messages);
   } catch (error) {
+    console.log(error);
     res.status(500).json({
       message: 'Error al obtener los mensajes',
     });

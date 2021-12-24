@@ -1,12 +1,10 @@
 const User = require('../models/User');
-const { v4: uuid } = require('uuid');
 const {
   COOKIE_ACCESS_NAME,
   COOKIE_REFRESH_NAME,
   COOKIES_OPTIONS,
-  ORIGIN_URL,
 } = require('../config');
-const { createTokens, client, sendEmail, getTemplate } = require('../helpers');
+const { createTokens, client, sendMail } = require('../helpers');
 
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
@@ -26,16 +24,11 @@ const forgotPassword = async (req, res) => {
       });
     }
 
-    const token = uuid();
-
-    client.set(`reset:${token}`, user._id.toString(), {
-      EX: 1000 * 60 * 60,
+    sendMail({
+      user,
+      subject: 'Reset password',
+      template: 'reset',
     });
-
-    const template = getTemplate('reset', {
-      url: `https://${ORIGIN_URL}/forgot-password/${token}`,
-    });
-    await sendEmail(user.email, 'Reset your password', template);
 
     res.status(200).json({
       msg: 'Reset password link sent',

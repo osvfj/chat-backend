@@ -76,7 +76,6 @@ const updateUser = async (req = request, res = response) => {
       ? res.json({ msg: 'User and image updated', userImageUpdated })
       : res.json({ msg: 'User updated', user });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: 'Server error' });
   }
 };

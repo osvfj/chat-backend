@@ -1,12 +1,6 @@
 const { request, response } = require('express');
-const { cloudinary } = require('../helpers');
-const {
-  createTokens,
-  verifyToken,
-  csrfToken,
-  sendEmail,
-  getTemplate,
-} = require('../helpers');
+const { cloudinary, sendMail } = require('../helpers');
+const { createTokens, verifyToken, csrfToken } = require('../helpers');
 const { client } = require('../helpers');
 const { v4: uuid } = require('uuid');
 
@@ -16,7 +10,6 @@ const {
   COOKIE_ACCESS_NAME,
   COOKIE_REFRESH_NAME,
   COOKIES_OPTIONS,
-  ORIGIN_URL,
 } = require('../config');
 
 const login = async (req = request, res = response) => {
@@ -30,7 +23,7 @@ const login = async (req = request, res = response) => {
       return res.status(401).json({ msg: 'The password is incorrect' });
     }
 
-    if (user.isVerified === false) {
+    if (!user.isVerified) {
       return res.status(401).json({ msg: 'The user is not verified' });
     }
 
@@ -77,23 +70,17 @@ const register = async (req = request, res = response) => {
 
     await newUser.save();
 
-    const token = uuid();
-    client.set(`verify:${token}`, newUser._id.toString(), {
-      EX: 60 * 60 * 24 * 1000,
+    sendMail({
+      user: newUser,
+      subject: 'Verify your email',
+      template: 'verify',
     });
-
-    const template = getTemplate('verify', {
-      url: `${ORIGIN_URL}/auth/verify/${token}`,
-    });
-
-    await sendEmail(newUser.email, 'Verify your email', template);
 
     res.json({
       msg: 'user created, verify your account',
       user: newUser,
     });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ msg: 'Server error' });
   }
 };
@@ -154,7 +141,11 @@ const verifyUser = async (req = request, res = response) => {
     const user = await User.findById(userId);
 
     if (!user) {
-      return res.status(404).json({ msg: 'User not found' });
+      return res.status(404).json({ msg: 'User not found, invalid token' });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ msg: 'User already verified' });
     }
 
     user.isVerified = true;
@@ -181,16 +172,11 @@ const sendVerify = async (req = request, res = response) => {
       return res.status(400).json({ msg: 'User already verified' });
     }
 
-    const token = uuid();
-    client.set(`verify:${token}`, user._id.toString(), {
-      EX: 60 * 60 * 24 * 1000,
+    sendMail({
+      user,
+      subject: 'Verify your email',
+      template: 'verify',
     });
-
-    const template = getTemplate('verify', {
-      url: `${ORIGIN_URL}/auth/verify/${token}`,
-    });
-
-    await sendEmail(user.email, 'Verify your email', template);
 
     res.json({ msg: 'Verification email sent' });
   } catch (error) {
