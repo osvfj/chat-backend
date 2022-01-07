@@ -10,7 +10,7 @@ async function sendMail({ user, template, subject, templateData }) {
   });
 
   const this_template = getTemplate(template, {
-    url: `${ORIGIN_URL}/api/auth/verify/${token}`,
+    url: `${ORIGIN_URL}/verify/${token}`,
     user,
     subject,
     ...templateData,
