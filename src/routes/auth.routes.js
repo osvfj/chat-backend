@@ -31,8 +31,4 @@ router.get('/csrf', [authorization], getCsrfToken);
 router.get('/verify/:token', verifyUser);
 router.post('/verify', sendVerify);
 
-router.get('/check', [authorization], (req, res) => {
-  res.status(200).json({ msg: 'user is logged in' });
-});
-
 module.exports = router;

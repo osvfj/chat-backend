@@ -4,6 +4,7 @@ const {
   getUser,
   updateUser,
   deleteUser,
+  me,
 } = require('../controllers/users.controller');
 const { authorization, fields, csrf } = require('../middlewares');
 const { userSchemaValidatorUpdate } = require('../middlewares/validations');
@@ -18,5 +19,7 @@ router.patch(
   updateUser
 );
 router.delete('/', [authorization, csrf], deleteUser);
+
+router.get('/profile/me', [authorization], me);
 
 module.exports = router;

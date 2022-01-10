@@ -96,9 +96,15 @@ const deleteUser = async (req = request, res = response) => {
   });
 };
 
+const me = async (req, res) => {
+  const user = await User.findById(req.userId);
+  res.status(200).json({ msg: 'user is logged in', user });
+};
+
 module.exports = {
   getUsers,
   getUser,
   updateUser,
   deleteUser,
+  me,
 };
