@@ -8,10 +8,12 @@ const {
 } = require('../controllers/users.controller');
 const { authorization, fields, csrf } = require('../middlewares');
 const { userSchemaValidatorUpdate } = require('../middlewares/validations');
+const { roleAuth } = require('../middlewares');
+const { roles } = require('../helpers');
 
 const router = Router();
 
-router.get('/', getUsers);
+router.get('/', [authorization, roleAuth(roles.admin)], getUsers);
 router.get('/:username', getUser);
 router.patch(
   '/',

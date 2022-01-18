@@ -39,6 +39,11 @@ const UserSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    role: {
+      type: String,
+      enum: ['user', 'admin'],
+      default: 'user',
+    },
   },
   {
     timestamps: true,
@@ -66,7 +71,7 @@ UserSchema.methods.comparePassword = function (password) {
 };
 
 UserSchema.methods.toJSON = function () {
-  const { password, ...user } = this.toObject();
+  const { password, role, isVerified, ...user } = this.toObject();
   return user;
 };
 

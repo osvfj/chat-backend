@@ -10,6 +10,7 @@ const client = require('./redis');
 const csrfToken = require('./csrftoken');
 const { sendEmail, getTemplate } = require('./mailer');
 const sendMail = require('./sendMail');
+const roles = require('./roles');
 
 module.exports = {
   cloudinary,
@@ -24,4 +25,5 @@ module.exports = {
   sendEmail,
   getTemplate,
   sendMail,
+  roles,
 };
